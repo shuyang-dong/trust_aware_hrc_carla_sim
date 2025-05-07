@@ -1,0 +1,51 @@
+# === Python bytecode ===
+__pycache__
+.py[cod]
+$py.class
+
+# === Compiled extensions ===
+.so
+.dll
+.dylib
+.out
+.o
+
+# === Virtual environments ===
+.env
+.venv
+env
+venv
+CARLA_VIRTUAL_ENV
+
+# === Jupyter Notebook checkpoints ===
+.ipynb_checkpoints
+
+# === PyCharm project files ===
+.idea
+.iml
+
+# === VS Code settings ===
+.vscode
+
+# === OS-generated files ===
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+.log
+
+# === CARLA simulator build artifacts ===
+.ue4project
+.uproject
+Saved
+Intermediate
+Build
+
+# === Simulation output data ===
+trust_level_record
+.csv
+.json
+
+# === Temporary files ===
+.tmp
+.swp
