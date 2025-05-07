@@ -1,0 +1,15 @@
+blueprint,spawnpoint_index,ego_veh_road_id,ego_veh_lane_id,generate_flag,speed,heading,delta_x,delta_y,route,road
+walker.pedestrian.0007,60,9,1,0,0.8,270,5,3,0,BG
+walker.pedestrian.0007,237,21,1,0,0.8,180,3,0,0,AB
+walker.pedestrian.0007,141,10,-1,0,0.2,90,-3,-8,0,GI
+walker.pedestrian.0007,85,12,1,0,0.2,90,-3,-8,0,DK
+vehicle.mercedes.sprinter,106,18,1,0,999,999,999,999,106_100,JK
+vehicle.mercedes.sprinter,105,18,-1,0,999,999,999,999,105_77,KJ
+vehicle.mercedes.sprinter,82,19,1,0,999,999,999,999,82_106,KL
+vehicle.mercedes.sprinter,92,19,-1,0,999,999,999,999,92_233,LK
+vehicle.ford.ambulance,103,23,-1,0,999,999,999,999,103_225,
+vehicle.ford.ambulance,104,23,1,0,999,999,999,999,104_228,
+vehicle.mercedes.sprinter,110,25,-1,0,999,999,999,999,110_14,
+vehicle.mercedes.sprinter,111,25,1,0,999,999,999,999,111_17,
+vehicle.carlamotors.firetruck,163,8,-1,0,999,999,999,999,65_66,
+vehicle.carlamotors.firetruck,183,8,1,0,999,999,999,999,62_63,

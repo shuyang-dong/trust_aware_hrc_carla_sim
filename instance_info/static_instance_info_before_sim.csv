@@ -1,0 +1,7 @@
+blueprint,spawnpoint_index,road_segment,delta_x,delta_y,heading
+vehicle.bh.crossbike,218,AE,2,3,180
+vehicle.diamondback.century,86,CJ,0,1.5,180
+vehicle.gazelle.omafiets,175,DE,-2,0,180
+vehicle.bh.crossbike,72,EA,-2,3,180
+vehicle.diamondback.century,246,JC,0,-1.5,180
+vehicle.gazelle.omafiets,169,ED,2,0,180

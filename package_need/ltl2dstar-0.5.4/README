@@ -1,0 +1,42 @@
+=================
+ ltl2dstar 0.5.4
+=================
+
+(c) 2005-2016 Joachim Klein <j.klein@ltl2dstar.de>
+	
+ltl2dstar ("LTL to deterministic Streett and Rabin automata") converts
+formulas in Linear Time Logic to deterministic omega-automata,
+specifically Rabin (DRA) and Streett automata (DSA).
+
+For detailed documentation, see doc/ltl2dstar.html.
+
+To compile, go to src/ and type 'make' ('gmake' on *BSD),
+resulting in a src/ltl2dstar executable file.
+
+Note that your compiler has to support the C++11 features.
+
+The src/boost directory contains header files from the
+Boost c++ libraries (v.1.57.0): http://www.boost.org/
+
+The src/cpphoafparser directory contains header files
+from the cpphoaf library (v.0.99.2): http://automata.tools/hoa/cpphoafparser/
+
+If you do anything interesting with ltl2dstar or have
+problems, feel free to drop me an email...
+
+
+
+Compiling using CMake
+---------------------
+
+Optionally, you can use cmake (http://www.cmake.org/)
+to compile ltl2dstar. In the top-level directory:
+
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ../src
+# use Debug instead of Release to get a debug build
+# optionally use the CMake GUI tools to modify settings
+make
+
+This will result in a build/ltl2dstar executable.

@@ -1,0 +1,1067 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <link href="ltl2dstar.css" rel="stylesheet">
+      <title>ltl2dstar documentation</title>
+  </head>
+
+  <body>
+    <h1><span class="blue1">ltl</span><span class="blue2">2</span><span class="blue3">dstar</span>
+        documentation (v.0.5.4)
+    </h1>
+
+    <p>&copy; 2005-2018 Joachim Klein &lt;j.klein&#64;ltl2dstar.de&gt;</p>
+
+    <p><b>Contents</b></p>
+    <ul>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#getting-started">Getting started</a><br>
+        <ul>
+	  <li><a href="#compiling">Compiling</a></li>
+	  <li><a href="#ltl-to-nba">LTL-to-NBA translators</a></li>
+	  <li><a href="#generating-automata">Generating automata</a></li>
+	  <li><a href="#from-nba">Translating from NBA</a> <span class="alert">new in version 0.5.3</span></li>
+	</ul>
+      </li>
+      <li><a href="#ltl-formulas">LTL formulas</a></li>
+      <li><a href="#dra_dsa">Deterministic Rabin/Streett Automata</a></li>
+      <li><a href="#cmdline">Command line options</a></li>
+      <li><a href="#ltl-to-nba-interface">Interface to external LTL-to-NBA translators</a></li>
+      <li><a href="#limitations">Known limitations</a></li>
+      <li><a href="#literature">Literature</a></li>
+    </ul>
+    
+    <h2 id="overview">Overview</h2>
+
+    <p>
+    <span class="prog">ltl2dstar</span> ("<b>LTL</b> to <b>d</b>eterministic <b>St</b>reett <b>a</b>nd <b>R</b>abin automata") converts formulas in Linear Time Logic to deterministic &omega;-automata, specifically Rabin (DRA) and Streett automata (DSA).
+    </p>
+    <p>It is an implementation of <a href="#lit-safra">Safra's construction</a> to translate non-deterministic B&uuml;chi automata (NBA) to deterministic Rabin automata, which has a worst-case
+     complexity of 2<sup>O(n log n)</sup>, with n being the number of states in the NBA. <span class="prog">ltl2dstar</span> employs optimizations and heuristics in an attempt to generate smaller automata in practice. It uses external LTL-to-B&uuml;chi translators for the conversion from LTL to NBA and can thus benefit from the state-of-the-art algorithms, implementations and optimizations available in this well researched area.
+    </p>
+
+    <h2 id="getting-started">Getting started</h2>
+
+    <h3>Obtaining <span class="prog">ltl2dstar</span></h3>
+
+    <p>
+    You can download the latest version of <span class="prog">ltl2dstar</span> at <a href="http://www.ltl2dstar.de/">http://www.ltl2dstar.de/</a>.</p>
+    
+    <h3 id="compiling">Compiling</h3>
+    
+    <h4>Linux and other POSIX systems, Mac OS X</h4>
+
+    <p>
+      A Makefile for GNU Make and the GNU C++ compiler is provided in the <span class="cmdline">src</span> directory.
+      Note that <span class="prog">ltl2dstar</span> uses C++11 features and thus needs a compiler that supports these features.
+    </p>
+    
+    <p>To compile, just type <span class="cmdline">make</span> in the <span class="cmdline">src</span> subdirectory. If everything works correctly, this will create the program file <span class="cmdline">ltl2dstar</span>, which you may copy to a convenient location.
+
+    <pre class="command">
+tar xzvf ltl2dstar-0.5.4.tar.gz
+cd ltl2dstar-0.5.4/src
+make    #  (on Linux)
+gmake   #  (on *BSD)</pre>
+      
+    <p>
+    If you have problems compiling or have success compiling using another compiler, please drop me an e-mail.
+    </p>
+
+    <p>There is also a Makefile for <a href="http://www.cmake.org/">CMake</a>, see the README file.</p>
+
+    <h4>Microsoft Windows</h4>
+
+    <p>
+      <span class="prog">ltl2dstar</span> can be compiled using a GNU C++ version for Windows (like cygwin or mingw) or using current Microsoft Visual C++ compilers.
+      You have to make sure that the <span class="cmdline">src</span> directory is in the include path.
+    </p>
+    
+    <p>
+      A compiled binary for Win32 systems is included in the ZIP archive.
+    </p>
+
+    <h3 id="ltl-to-nba">LTL-to-NBA translators</h3>
+    
+    <p>
+    To generate DRA/DSA for an LTL formula, <span class="prog">ltl2dstar</span> relies on external LTL-to-NBA translators.
+    There are many different translators available, each providing a different command-line interface.
+    </p>
+
+    <p>
+    <span class="paragraph">Tool specifications:</span><br>
+    You can specify how the translator is called by providing the command and arguments,
+    using the following placeholders (inspired by the notation of <a href="https://spot.lrde.epita.fr/ltlcross.html#sec-2">Spot's ltlcross</a>):
+    </p>
+    <table class="ltl2nba-placeholder" border="1">
+      <tr>
+	<th>Placeholder</th><th>Replacement</th>
+      </tr>
+      <tr>
+	<td class="placeholder">%s</td><td>LTL formula in <a href="#interface-spin">Spin</a> syntax</td>
+      </tr>
+      <tr>
+	<td class="placeholder">%S</td><td>Filename of a file containing the LTL formula in <a href="#interface-spin">Spin</a> syntax</td>
+      </tr>
+      <tr>
+	<td class="placeholder">%l</td><td>LTL formula in <a href="#interface-lbtt">LBT(T)</a> syntax</td>
+      </tr>
+      <tr>
+	<td class="placeholder">%L</td><td>Filename of a file containing the LTL formula in <a href="#interface-lbtt">LBT(T)</a> syntax</td>
+      </tr>
+
+      <tr>
+	<td class="placeholder">%N</td><td>Filename for the automaton file (in <a href="#interface-spin">Spin neverclaim</a> syntax)</td>
+      </tr>
+      <tr>
+	<td class="placeholder">%T</td><td>Filename for the automaton file (in <a href="#interface-lbtt">LBT(T)</a> syntax)</td> 
+      </tr>
+      <tr>
+	<td class="placeholder">%H</td><td>Filename for the automaton file (in <a href="#input-hoa">HOA</a> syntax)</td> 
+      </tr>
+    </table>
+    
+    <p>The filename placeholders can be used as-is or as the source or target of a redirection of the standard input/output of the tool.
+    As an example, in the specification</p>
+    <div class="cmdline"> 
+      <i>tool</i> -f %s &gt; %N
+    </div>
+    <p>
+    the %s will be expanded to the formula in Spin syntax and the automaton in neverclaim format is read from the standard output. For</p>
+    <div class="cmdline"> 
+      <i>tool</i> %H &lt; %L
+    </div>
+    <p>the formula is written, as a single line, to a file, which is piped to the standard input of the <i>tool</i>, while
+    the output automaton (in HOA format) is read from the filename of %H.</p>
+
+    <p>To provide the LTL-to-B&uuml;chi translator, <span class="prog">ltl2dstar</span> provides the <span class="prog">--ltl2nba</span> command line option, which can take
+    a tool specification as described above (with suitable quoting of the white space or special shell characters in the argument): </p>
+    <div class="cmdline">
+      --ltl2nba='<i>tool</i> <i>parameters/placeholders/redirection</i>'
+    </div>
+
+    <p>On Windows, you generally have to "double-quote" the whole argument.</p>
+
+    <p>
+    <span class="paragraph">Shortcuts spin/lbtt:</span><br>
+    Furthermore, for historical reasons and for convenience, two shortcuts are available for the Spin and LBT(T) calling convention. For the <i>Spin</i> calling convention, use
+    <div class="cmdline">
+      --ltl2nba=spin:<i>tool</i><br>
+     --ltl2nba='spin:<i>tool</i>@<i>parameters</i>'
+    </div>
+    <p>
+    which are, respectively, equivalent to 
+    </p>
+    <div class="cmdline">
+      --ltl2nba='<i>tool</i> -f %s &gt; %N'<br>
+      --ltl2nba='<i>tool</i> -f %s <i>parameters</i> &gt; %N'
+    </div>
+    <p>For the LBT(T) calling convention, use</p>
+    <div class="cmdline">
+      --ltl2nba=lbtt:<i>tool</i><br>
+      --ltl2nba='lbtt:<i>tool</i>@<i>parameters</i>'
+    </div>
+    <p>
+    which are, respectively, equivalent to 
+    </p>
+    <div class="cmdline">
+      --ltl2nba='<i>tool</i> %L %T'<br>
+      --ltl2nba='<i>tool</i> <i>parameters</i> %L %T'
+    </div>
+    
+    <p>
+    <span class="paragraph">Path:</span><br>
+    In general, the <i>tool</i> part may be an absolute or relative path to the tool executable. If it does not contain a path separator,
+    first the current directory is considered as the location of the <i>tool</i> executable and then the <i>PATH</i> is searched.
+    </p>
+    
+    <p>
+    <span class="paragraph">Tools:</span><br>
+    The following table gives an overview of translators that have been successfully used with <span class="prog">ltl2dstar</span> and their tool specifications:</p>
+
+    <table class="ltl-nba-progs" border="1">
+      <tr>
+	<th colspan="2">Program</th><th>Remarks</th>
+      </tr>
+      <tr>
+	 <td><a href="http://www.liafa.jussieu.fr/~oddoux/">ltl2ba</a></td>
+         <td><a href="http://www.liafa.jussieu.fr/~oddoux/ltl2ba/download.html">download</a></td>
+	 <td>Written in C, uses a translation via alternating automata [<a href="http://dx.doi.org/10.1007/3-540-44585-4_6">GastinOddoux01</a>].<br>
+	   Via <span class="translator">spin:ltl2ba</span> or <span class="translator">ltl2ba -f %s &gt; %N</span><br>
+	 </td></tr>
+      <tr><td><a href="https://spot.lrde.epita.fr/">Spot's&nbsp;ltl2tgba</a></td><td><a href="http://spot.lip6.fr/wiki/GetSpot">download</a></td><td>Written in C++,
+	supports advanced simplification algorithms [<a href="http://dx.doi.org/10.1504/IJCCBS.2014.059594">Duret-Lutz14</a>]. Check out the cool <a href="https://spot.lrde.epita.fr/trans.html">web interface to ltl2tgba</a>.<br>
+	Via <span class="translator">spin:ltl2tgba@-B -D -s</span> (Spin interface), <span class="translator">ltl2tgba --lbt-input %l -B -D -H &gt; %H</span> (LBT input, HOA output), ...<br>
+	The -B selects B&uuml;chi automaton output, the -D signals a preference for deterministic automata.
+      </td></tr>
+      <tr><td><a href="http://sourceforge.net/projects/ltl3ba/">ltl3ba</a></td><td><a href="http://sourceforge.net/projects/ltl3ba/files/ltl3ba/">download</a></td>
+      <td>Written in C++, extended version of ltl2ba with additional simplifications [<a href="http://dx.doi.org/10.1007/978-3-642-28756-5_8">Babiak+12</a>].<br>
+	Via <span class="translator">spin:ltl3ba</span> or <span class="translator">ltl3ba -H3 -f %s &gt; %H</span> (HOA output of the NBA).
+      </td></tr>
+
+      <tr><td><a href="http://www.spinroot.com/">spin</a></td><td><a href="http://spinroot.com/spin/Src/index.html">download</a></td><td>Full-featured model checker, can also be used to translate LTL formulas to NBA. <br>
+	Based on [<a href="http://www.cs.rice.edu/~vardi/papers/pstv95rj.ps.gz">GerthPeledVardiWolper95</a>].<br>
+	Via <span class="translator">spin:spin</span> or <span class="translator">spin -f %s &gt; %N</span>.
+      </td></tr>
+
+      <tr>
+	<td><a href="http://www.ti.informatik.uni-kiel.de/~fritz/">LTL-&gt;NBA</a></td>
+	<td><a href="http://www.ti.informatik.uni-kiel.de/~fritz/LTL-NBA.zip">download</a> <span class="alert">Offline</span></td>
+	<td>Written in Python, using alternating B&uuml;chi automata and simulation relations [<a href="http://dx.doi.org/10.1007/3-540-45089-0_5">FritzWilke03</a>].<br>
+	  Via <span class="translator">lbtt:script4lbtt.py</span> or <span class="translator">script4lbtt.py %L %T</span>.
+	</td>
+      </tr>
+
+      <tr><td><a href="http://www.science.unitn.it/~stonetta/modella.html">Modella</a></td>
+      <td><a href="http://www.science.unitn.it/~stonetta/modella.html">download</a> <span class="alert">Offline</span></td>
+      <td>Written in C, tries to produce "more deterministic" NBA [<a href="http://dx.doi.org/10.1007/978-3-540-39724-3_12">SebastianiTonetta03</a>].<br>
+	Via <span class="translator">lbtt:modella</span> or <span class="translator">modella %L %T</span>.
+	</td></tr>
+    </table>
+    
+    <p>For a comparison of several LTL-to-NBA translators in the context of subsequent determinization, you are referred to the <a href="#diploma-thesis">diploma thesis</a> (state of 2006).</p>
+
+    <p>
+    <span class="paragraph">Examples:</span>
+    </p>
+
+    <p>
+    ltl2ba in current working directory or on the PATH</p>
+    <div class="cmdline">--ltl2nba=spin:ltl2ba</div>
+
+    <p>ltl2ba at specific location</p>
+    <div class="cmdline">--ltl2nba=spin:/opt/tools/ltl2ba</div>
+
+    <p>Spot's ltl2tgba in current working directory or on the PATH
+    (<span class="cmdline">-s</span> enables Spin input/output)
+    </p>
+    <div class="cmdline">"--ltl2nba=ltl2tgba -s %s -D &gt; %N"</div>
+
+    <p>
+    ltl3ba in current working directory or on the PATH, with HOA output </p>
+    <div class="cmdline">--ltl2nba='ltl3ba -H3 -f %s &gt; %H'</div>
+    
+    <p>Spin in /usr/bin/spin:</p>
+    <div class="cmdline">--ltl2nba=spin:/usr/bin/spin</div>
+
+    <p>
+    <span class="paragraph">Recommendations:</span><br>
+    For the generated automata and where available,
+    we suggest the use of the <a href="#interface-lbtt">LBT(T)</a> automata format (stable code)
+    as well as the <span class="cmdline">%H</span> placeholder for the <a href="#format-hoa">HOA format</a>.
+    For the LTL syntax, we prefer the <a href="#interface-lbtt">LBT(T)</a> syntax due to the
+    ease of parsing provided by the prefix format, without parentheses and operator precedence rules.
+    </p>
+
+
+      
+    <h3 id="generating-automata">Generating automata</h3>
+
+    <p>
+      In these examples we will use <span class="prog">ltl2ba</span> as the LTL-to-NBA translator and assume
+      that the executable is located in the current working directory or on the PATH.
+    </p>
+    
+    <p>
+      <span class="prog">ltl2dstar</span> can output the generated automata either as a text file as described
+      later or in a format that can be translated using the <span class="prog">dot</span> tool from the
+      <span class="prog"><a href="http://www.graphviz.org/">graphviz</a></span> package.
+    </p>
+
+    <p>
+      The following commands put the formula "F G a" (Finally Globally a) in prefix format into the file
+      <span class="cmdline">FGa.ltl</span>, translate this to a <span class="prog">dot</span>-representation
+      of the automaton in file <span class="cmdline">FGa.dot</span> and then generate a
+      PDF file <span class="cmdline">FGa.pdf</span> containing the automaton:
+    </p>
+      
+<pre class="command">
+echo "F G a" &gt; FGa.ltl
+ltl2dstar --ltl2nba=spin:ltl2ba --stutter=no --output-format=dot FGa.ltl FGa.dot
+dot -Tpdf FGa.dot &gt; FGa.pdf
+</pre>
+
+    <p><i>Note: We use the command line option --stutter=no to disable the use of the stuttering
+      construction to get the automaton as it is generated by Safra's algorithm (see <a href="#stuttering">Stuttering</a>).</i></p>
+      
+
+   <p>
+    <span class="paragraph">Result:</span><br>
+    <img style="border:1px solid black; height: 15em" src="FGa.svg" alt="Automaton for FGa"></p>
+
+<p>The start state is shaded gray. The first number in the states is the name of the state, the second row is the acceptance signature for this state (see <a href="#semantics">Semantics</a>).</p>
+
+<p>
+To see the Safra trees that make up the states of the automaton, we can use the command-line option <span class="cmdline">--detailed-states=yes</span>:
+
+<pre class="command">
+echo "F G a" &gt; FGa.ltl
+ltl2dstar --ltl2nba=spin:ltl2ba --stutter=no --output-format=dot \
+          --detailed-states=yes FGa.ltl FGa_detailed.dot
+dot -Tpdf FGa_detailed.dot &gt; FGa_detailed.pdf
+</pre>
+
+<p>
+<span class="paragraph">Result:</span><br>
+<img style="border:1px solid black; height: 20em" src="FGa_detailed.svg" alt="Automaton for FGa"></p>
+
+
+<p>The upper left number in the states is the name of the state, on the right of it is the acceptance signature for this state (see <a href="#semantics">Semantics</a>). Below this line, we can see the trees used in the construction process.</p>
+
+
+<p>
+      You can use '-' as the argument for the formula file to get the LTL formula directly from standard input (the console):
+<pre class="command">
+echo "F G a" | ltl2dstar ...
+</pre>
+<p>
+ Using '-' as the argument for the output file, the automaton is output on the standard output.
+</p>
+
+
+
+      <h3 id="stuttering">Stuttering</h3>
+
+<p>    Since version 0.5, <span class="prog">ltl2dstar</span> supports the <i>stuttered translation</i> from NBA to DRA. Provided that the formula is invariant under stuttering, this allows the merging of intermediate states that are redundant under stuttering, leading to potentially smaller automata.</p>
+<p> For formulas/automata that are not completely insensitive to stuttering, we can determine the exact set of symbols for which stuttering is allowed and use the stuttered translation only on exactly these symbols. Determining the set of symbols for which stuttering is allowed is unfortunately PSPACE-complete and is not enabled by default (use <span class="cmdline">--partial-stutter=yes</span> to enable). The user of <span class="prog">ltl2dstar</span> should determine if the additional time needed to check the stutter invariance is an acceptable trade-off for getting potentially significantly smaller automata.</p>
+<p> Stuttering for formulas not containing the NextStep operator (X) (which are completely insensitive to stuttering), is enabled by default (<span class="cmdline">--stutter=no</span> to disable).</p>
+
+<pre class="command">
+echo "F G a" &gt; FGa.ltl
+ltl2dstar --ltl2nba=spin:ltl2ba --stutter=yes --output-format=dot \
+          --detailed-states=yes FGa.ltl FGa_stutter.dot
+dot -Tpdf FGa_detailed.dot &gt; FGa_stutter.pdf
+</pre>
+
+<p>
+<span class="paragraph">Result:</span><br>
+<img style="border:1px solid black; height: 17em" src="FGa_stutter.svg" alt="Automaton for FGa"></p>
+
+
+<h3 id="from-nba">Translating from an NBA</h3>
+<p>Since version 0.5.3, <span class="prog">ltl2dstar</span> supports the direct determinization
+of NBA using the <span class="cmdline">--input=nba</span> option. With this option, the input file
+is expected to be a non-deterministic B&uuml;chi automaton in <a href="#input-hoa">HOA format</a>.
+As an example, consider the following HOA automaton:
+</p>
+
+<pre class="command">
+HOA: v1
+name: "eventually always alternating a and !a"
+AP: 1 "a"
+Start: 0
+States: 3
+Acceptance: 1 Inf(0)
+acc-name: Buchi
+--BODY--
+State: 0
+[ t] 0         /* true -&gt; 0 */
+[!0] 1         /* !a -&gt; 1 */
+State: 1 {0}   /* accepting state */
+[ 0] 2         /* a -&gt; 2 */
+State: 2 {0}   /* accepting state */
+[!0] 1         /* !a -&gt; 1 */
+--END--
+</pre>
+<p>This automaton recognizes the language of the &omega;-regular expression <span class="cmdline">true<sup>*</sup> ; (a ; !a)<sup>&omega;</sup></span>,
+i.e., eventually there will be always alternation between atomic proposition <span class="cmdline">a</span> being true and
+<span class="cmdline">a</span> being false.</p>
+
+<p>Assuming this automaton is stored in file <span class="cmdline">nba.hoa</span>, we can generate a deterministic automaton via
+<pre class="command">
+ltl2dstar --input=nba --output-format=dot --detailed-states=yes nba.hoa dra-from-nba.dot
+dot -Tpdf dra-from-nba.dot &gt; dra-from-nba.pdf
+</pre>
+
+<p>
+<span class="paragraph">Result:</span><br>
+<img style="border:1px solid black; height: 25em" src="dra-from-nba.svg" alt="DRA from NBA"></p>
+
+<p><span class="paragraph">Complementing the language:</span><br>
+If the input is an LTL formula, we can easily complement the recognized language just by negating the formula.
+For an NBA input, negation is more complicated. However,
+we can exploit the duality between Rabin and Streett acceptance to complement the recognized language. Using the
+<span class="cmdline">--complement-input=yes</span> option, <span class="prog">ltl2dstar</span> first determinizes the NBA to a deterministic Rabin automaton (DRA), as usual.
+But before outputting the deterministic automaton, it switches the acceptance to Streett, effectively complementing the language. The output in this constellation
+is therefore a deterministic Streett automaton.
+</p>
+
+<p><span class="paragraph">Trusting HOA properties, Stuttering:</span><br>
+To determine whether a language is stutter insensitive, <span class="prog">ltl2dstar</span> usually inspects the
+LTL formula for absence of the next step operator. Optionally, it can analyze the NBA for partial stutter-insensitiveness,
+relying on the easy access to the complement NBA constructed for the negated formula.</p>
+<p>In case that only an NBA is given as input, <span class="prog">ltl2dstar</span> can not efficiently determine stutter-insensitiveness.
+However, if the HOA automaton has the <span class="cmdline">stutter-insensitive</span> property, <span class="prog">ltl2dstar</span>
+will use this information during the determinization construction. For this to yield a correct deterministic automaton,
+it trusts that the property has been added by the automaton's producer only if the language is indeed stutter insensitive.
+You can change the default behavior of trusting properties with the <span class="cmdline">--trust-hoa-properties=no</span> option.
+With this option, the language-related HOA properties are ignored.
+</p>
+
+    <h3 id="Plugins">Plugins</h3>
+
+    <p>Since version 0.5.1, <span class="prog">ltl2dstar</span> has a
+    mechanism to call plugins at several points during the translation
+    process such that users can perform additional analysis or output
+    in a different format. Take a look inside the src/plugins
+    directory for the interface and some sample plugins and uncomment
+    the PLUGINS line in the Makefile to start experimenting. Activate
+    a plugin using the <span class="cmdline">--plugin</span> command
+    line option or using 
+    <span class="cmdline">--output=plugin:<i>name</i></span> for an output
+    plugin. There may be multiple 
+    <span class="cmdline">--plugin</span> specifications, the plugins are
+    called in the order they are specified on the command line.</p>
+
+
+
+    <h2 id="ltl-formulas">LTL formulas</h2>
+
+    <h3>Input format</h3>
+
+    <p>    
+      LTL formulas as used by <span class="prog">ltl2dstar</span> are in prefix format using the following grammar:
+    </p>
+
+    <pre>
+      <i>formula</i>  ::=  
+               t                   // True
+            |  f                   // False
+            |  <i>atomic-proposition</i>
+
+      // propositional logic
+            |  ! <i>formula</i>           // Negation
+            |  & <i>formula</i> <i>formula</i>   // Conjunction (And)
+            |  | <i>formula</i> <i>formula</i>   // Disjunction (Or)
+            |  i <i>formula</i> <i>formula</i>   // Implication
+            |  e <i>formula</i> <i>formula</i>   // Equivalence
+            |  ^ <i>formula</i> <i>formula</i>   // Exclusive Or (XOR)
+
+      // temporal logic
+            |  X <i>formula</i>           // Next-Step
+            |  F <i>formula</i>           // Finally (Eventually)
+            |  G <i>formula</i>           // Globally (Always)
+            |  U <i>formula</i> <i>formula</i>   // Until (strong)
+            |  V <i>formula</i> <i>formula</i>   // Release (weak)
+            |  W <i>formula</i> <i>formula</i>   // Until (weak)
+
+<!-- perhaps in the future
+      <span style="background-color:red;">TODO</span>
+            |  'M' <i>formula</i> <i>formula</i>
+            |  'B' <i>formula</i> <i>formula</i>
+-->
+    </pre>
+
+    <p>
+      There is at least one space between all tokens in an LTL formula.
+    </p>
+
+    <p><i>atomic-proposition</i> can either be a string containing no whitespace (and not being one of the operators) and starting with a character from [a-zA-Z] or an arbitrary string enclosed in double quotes (").</p>
+
+    <h4>Examples</h4>
+    
+    <table class="ltl-example">
+      <tr>
+	<th><span class="prog">ltl2dstar</span> notation</th>
+	<th><span class="prog">spin</span> notation</th>
+      </tr>
+      <tr>
+	<td><span class="ltl">& p0 "p1"</span></td><td><span class="ltl">p0 && p1</span></td>
+      </tr><tr>
+	<td><span class="ltl">i G F a G F b</span></td><td><span class="ltl">([] &lt;&gt; a) -> ([] &lt;&gt; b)</span></td>
+      </tr>
+    </table>
+    <p>To convert LTL formulas in other formats to the <span class="prog">ltl2dstar</span> syntax,
+       you can use the <a href="https://spot.lrde.epita.fr/ltlfilt.html">ltlfilt</a> tool from Spot and select the <span class="prog">--lbt</span> option.</p>
+
+    <h2 id="dra_dsa">Deterministic Rabin/Streett Automata</h2>
+    
+    <h3 id="semantics">Semantics</h3>
+
+    <p>
+      Deterministic Rabin (DRA) and Deterministic Streett Automata (DSA) are subtypes of Deterministic <span title="omega">&omega;</span>-Automata.
+    </p>
+    
+    <p>
+      A Deterministic Rabin Automaton is a 5-tuple DRA=(Q, <span title="Sigma">&Sigma;</span>, q<sub>0</sub>, <span title="delta">&delta;</span>, Acc), with:  </p> 
+    <ul>
+      <li>Q : a non-empty, finite set of <b>states</b>,</li>
+      <li><span title="Sigma">&Sigma;</span> : a non-empty, finite <b>alphabet</b>,</li>
+      <li>q<sub>0</sub>: a single <b>initial state</b> from Q</li>
+      <li><span title="delta">&delta;</span> : a deterministic <b>transition function</b> Q &times; <span title="Sigma">&Sigma;</span> -&gt; Q</li>
+      <li>Acc : an <b>acceptance condition</b> {(L<sub>1</sub>,U<sub>1</sub>), ..., (L<sub>n</sub>,U<sub>n</sub>)}, 
+	being a set of <i>n</i> pairs (L<sub>i</sub>, U<sub>i</sub>) with L<sub>i</sub> and U<sub>i</sub> being subsets of the states Q.
+    </ul>
+
+    
+    <p>
+      Deterministic Streett-Automata are defined the same, they only differ in the semantic interpretation of the acceptance condition.
+    </p>
+
+   <p> A <b>run</b> of a DRA or DSA over an infinite word &sigma;=a<sub>0</sub>,a<sub>1</sub>, ... is a sequence of states in the DRA/DSA &rho;=q<sub>0</sub>,q<sub>1</sub>, ..., with q<sub>0</sub> being the initial state and for all q<sub>i+1</sub>=&delta;(q<sub>i</sub>, a<sub>0</sub>).</p>
+    <p>
+      The <b>infinity set</b> <i>Inf</i>(&rho;) of a run &rho; is the set of states that occur (are visited) infinitely often in &rho;.
+    </p>
+
+    <p>Rabin and Street acceptance are defined as follows:</p>
+
+    <div class="block">
+      <h4>Rabin acceptance</h4>
+
+      <p>
+	A run &rho; of a Deterministic Rabin Automaton with 
+	Acc ={(L<sub>1</sub>,U<sub>1</sub>), ..., (L<sub>n</sub>,U<sub>n</sub>)} 
+      is called accepting if:<br>
+      There exists a pair (L<sub>i</sub>,U<sub>i</sub>) such that the intersection of L<sub>i</sub> and <i>Inf</i>(&rho;) is <b>non-empty</b> and the intersection of U<sub>i</sub> and <i>Inf</i>(&rho;) is <b>empty</b>.
+    </p>
+    </div>
+    
+    <div class="block">
+      <h4>Streett acceptance</h4>
+
+      <p>
+	A run &rho; of a Deterministic Streett Automaton with 
+	Acc ={(L<sub>1</sub>,U<sub>1</sub>), ..., (L<sub>n</sub>,U<sub>n</sub>)} 
+      is called accepting if:<br>
+      For all <i>n</i> pairs (L<sub>i</sub>,U<sub>i</sub>) the intersection of L<sub>i</sub> and <i>Inf</i>(&rho;) is <b>empty</b> or the intersection of U<sub>i</sub> and <i>Inf</i>(&rho;) is <b>non-empty</b>.
+    </p>
+    </div>
+
+    <p>When we consider the acceptance condition not in the context of the whole automaton but in the context of every individual state, we get the <b>acceptance signature</b> of a state: A string of the indizes of the acceptance pairs the state is a member of. If for an acceptance pair (L<sub>i</sub>,U<sub>i</sub>) the current state is a member of L<sub>i</sub>, '+i' is part of the acceptance signature, if it is a member of U<sub>i</sub>, '-1' is part of the acceptance signature. This allows reconstruction of the acceptance condition for the whole automaton.
+      </p>
+
+
+
+    <p>
+      The <b>language of a DRA/DSA</b> is defined as the set of infinite words (subset of &Sigma;<sup>&omega;</sup>) that have an accepting run on the automaton.
+    </p>
+
+
+
+    <h3 id="output-format-dstar">Output Format (dstar)</h3>
+
+    <h4>Grammar</h4>
+
+    <p>The following grammar defines the output format (version 2) for DRA and DSA introduced by <span class="prog">ltl2dstar</span>.
+    '\n' signifies a new line, comments start with //.</p>
+    <pre>
+      <i>automaton</i>        ::= <i>header</i> --- '\n' <i>states</i>
+      <i>header</i>           ::= <i>id</i> <i>comment</i>? <i>state-count</i> <i>acceptance-pairs</i> <i>start-state</i> <i>atomic-propositions</i>
+
+      <i>id</i>               ::= <i>automaton-type</i> <i>version</i> <i>edge-type</i> '\n'
+
+      <i>automaton-type</i>   ::=  DRA       // Rabin automaton
+                          | DSA       // Streett automaton
+      <i>version</i>          ::=  v2        // Format version
+      <i>edge-type</i>        ::=  explicit
+
+      <i>comment</i>          ::=  Comment: "<i>&lt;string&gt;</i>" '\n'  // A quoted string, optional comment
+      <i>state-count</i>      ::=  States: [0-9]+ '\n'           // Number of states
+      <i>acceptance-pairs</i> ::=  Acceptance-Pairs: [0-9]+ '\n' // Number of acceptance pairs
+      <i>start-state</i>      ::=  Start: [0-9]+ '\n'            // The name of the start state
+
+      <i>atomic-propositions</i> ::= AP: [0-9]+ <i>ap</i>* '\n'  // The number and the list of atomic propositions
+      <i>ap</i>                  ::= "<i>&lt;string&gt;</i>"           // A quoted (") string
+
+
+      <i>states</i>           ::=  (<i>state-name</i> <i>acceptance-signature</i> <i>transitions</i>)*
+      <i>state-name</i>       ::=  State: [0-9]+ ("<i>&lt;string&gt;</i>")? '\n'    // The name of the state
+                                                                // (with an optional quoted string as a comment)
+      <i>acceptance-signature</i> ::= Acc-Sig: <i>acc-sig</i>* '\n'           // A list of <i>acc-sig</i>
+      <i>acc-sig</i>          ::= (+|-)[0-9]+            // + or - followed by the name of the acceptance pair
+
+      <i>transitions</i>      ::= transition*
+      <i>transition</i>       ::= [0-9]+ '\n'            // The name of the 'to'-state
+
+    </pre>
+
+    <h4>Additional details</h4>
+    <ul>
+      <li>There are <i>state-count</i> states, 
+	named from 0 to <i>state-count</i> - 1. 
+	They appear in-order in <i>states</i>.</li>
+      <li>There are <i>acceptance-pairs</i> acceptance pairs, named from 0 to <i>acceptance-pairs</i> - 1.</li>
+      <li>If the the set of atomic propositions AP has <i>k</i> members, the transition function &delta; is of the form Q &times; 2<sup>AP</sup> -&gt; Q, therefore there are exactly 2<sup>k</sup> different transitions from every state. For the transitions, the member <i>a</i> of 2<sup>AP</sup> is encoded implicitly in the position of the transition: If a transition <i>t</i> is the <i>i</i><sup>th</sup> transition of a state (starting with 0), then the member <i>a</i> of 2<sup>AP</sup> can be deduced by interpreting <i>i</i> as a bitset. If the <i>j</i><sup>th</sup> (least-significant) bit of <i>i</i> is set, then the atomic proposition in that position of the list of atomic propositions <i>atomic-propositions</i> is a member of <i>a</i>, if the bit is not set then it is not a member of <i>a</i>.<br>
+	This means that the 2<sup>k</sup> transitions are efficiently encoded by the 'to'-state and the order of transitions.</li>
+	<li>In the quoted strings, \\ stands for \ and \&quot; for &quot; (this is produced correctly since <span class="prog">ltl2dstar</span> version 0.5.2)</li>
+    </ul>
+
+    <h4>Example</h4>
+    <p>
+      The following example shows the DRA output for the LTL formula 'U a b' (a until b), with the bitset and corresponding propositional description for the transitions (as <i>comments in italic</i> after //, that are not part of the actual output file).
+    </p>
+
+    <pre>
+DRA v2 explicit
+States: 3
+Acceptance-Pairs: 1
+Start: 0
+AP: 2 "a" "b"
+---
+State: 0
+Acc-Sig:
+1             <i>// 00 = !a & !b</i>
+0             <i>// 01 =  a & !b</i> 
+2             <i>// 10 = !a &  b</i>
+2             <i>// 11 =  a &  b</i> 
+State: 1
+Acc-Sig: -0
+1             <i>// 00 = !a & !b</i>
+1             <i>// 01 =  a & !b</i> 
+1             <i>// 10 = !a &  b</i>
+1             <i>// 11 =  a &  b</i> 
+State: 2
+Acc-Sig: +0
+2             <i>// 00 = !a & !b</i>
+2             <i>// 01 =  a & !b</i> 
+2             <i>// 10 = !a &  b</i>
+2             <i>// 11 =  a &  b</i> 
+    </pre>
+
+
+    <p>For this DRA, the set of states Q is {0,1,2}, the start state q<sub>0</sub> is state 0, there is one acceptance pair with L<sub>0</sub>={2} and U<sub>0</sub>={1}. States 1 and 2 loop back to themselves on any input, state 1 transitions to state 2 on an input containing 'b', to state 1 on an input not containing 'a' and 'b' and back to itself on an input with 'a' but not 'b'.</p>
+
+
+    <h3 id="format-hoa">Output Format (HOA)</h3>
+
+    <p>
+    The <a href="http://adl.github.io/hoaf/">Hanoi Omega-Automata Format (HOA)</a> was recently introduced [<a href="http://dx.doi.org/10.1007/978-3-319-21690-4_31">Babiak+15</a>]
+    and aims at a flexible and robust exchange format for &omega;-automata.
+    </p>
+    <p>
+    Using the <span class="cmdline">--output-format=hoa</span> option (or the <span class="cmdline">-H</span> short cut),
+    <span class="prog">ltl2dstar</span> will output automata in HOA format.
+    The deterministic automata will be complete, have Rabin or Streett state-based acceptance and implicit transition labels.
+    The non-deterministic automata will have state-based B&uuml;chi acceptance and explicit transition labels.
+    </p>
+
+    <p>
+    For further information, visit the <a href="http://adl.github.io/hoaf/support.html">HOA tool support page</a>
+    and the <a href="http://automata.tools/hoa/">HOA page on automata.tools</a>.
+    </p>
+
+    <!--    <h3>Graphical representation</h3> -->
+    
+    
+
+
+    <h2 id="cmdline">Command line options</h2>
+
+    <p>
+      Invocation of <span class="prog">ltl2dstar</span>:
+    </p>
+    <div class="cmdline">ltl2dstar <i>options</i> <i>input-file</i> <i>output-file</i>
+    </div>
+    
+    <p>
+      If <i>input-file</i> or <i>output-file</i> are '-', standard input/output is used.
+    </p>
+
+    <table class="cmdline-options" border="1">
+      <tr><th>Option</th><th>Description</th></tr>
+
+      <tr><th class="sections" colspan="2">External LTL-to-B&uuml;chi translator</th></tr>
+      <tr><td class="cmdline">
+	  --ltl2nba=<i>tool arguments</i><br>
+	  --ltl2nba=<i>interface</i>:<i>path</i><br>
+	  --ltl2nba=<i>interface</i>:<i>path</i>@<i>parameters</i></td>
+	<td>Specifies the external LTL-to-NBA translator to use, see <a href="#ltl-to-nba">above</a>.<br>
+	  <i>interface</i> can be either <span class="cmdline">spin</span> or <span class="cmdline">lbtt</span>.<br>
+	  <i>parameters</i> are passed through to the LTL-to-NBA translator.<br><br>
+	  <b>Default</b> (<span class="prog">ltl2ba</span> in current working directory):<br>
+	  &nbsp;<span class="cmdline">--ltl2nba=spin:ltl2ba</span>
+	</td>
+      </tr>
+
+      
+      <tr><th class="sections" colspan="2">Automata types</th></tr>
+
+      <tr>
+	<td class="cmdline">
+	  --automata=rabin,streett<br>
+	  --automata=rabin<br>
+	  --automata=streett<br>
+	  --automata=original-nba
+	</td>
+	<td>
+	  Which automata types should be generated?<br>
+          Use <span class="cmdline">original-nba</span> to get
+	  the NBA as generated for the formula by the 
+          external LTL-to-NBA translator.
+	  <br><br>
+	  <b>Default:</b> <span class="cmdline">--automata=rabin</span>
+	</td>
+      </tr>
+
+      <tr><th class="sections" colspan="2">Input options</th></tr>
+
+      <tr>
+	<td class="cmdline">
+	  --input=ltl<br>
+          --input=nba<br>
+	</td>
+	<td>
+	  What is the format of the input?
+	  <ul>
+	    <li><span class="cmdline">ltl</span> : an LTL formula in <a href="#ltl-formulas">prefix format</a>.</li>
+	    <li><span class="cmdline">nba</span> : a non-deterministic B&uuml;chi automaton (NBA) in <a href="#input-hoa">HOA format</a>.
+	    Generates a deterministic Rabin automaton.</li>
+	  </ul>
+	  <p>
+	  <b>Default:</b> <span class="cmdline">--input=ltl</span>
+	</p>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">
+	  --complement-input=yes/no
+	</td>
+	<td>
+	  Should the input be complemented?<br>
+	  In case of <span class="cmdline">--input=ltl</span>, negate the formula.<br>
+	  In case of <span class="cmdline">--input=nba</span>, generate a deterministic
+	  Streett automaton recognizing the complement language of the NBA.<br>
+	  <p>
+	  <b>Default:</b> <span class="cmdline">--complement-input=no</span>
+	  </p>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">
+	  --trust-hoa-properties=yes/no
+	</td>
+	<td>
+	  Should <span class="cmdline">properties</span> headers in a parsed HOA automaton be trusted?
+	  Currently, this concerns the <span class="cmdline">stutter-insensitive</span> property.
+	  <p>
+	  <b>Default:</b> <span class="cmdline">--trust-hoa-properties=yes</span>
+	  </p>
+	</td>
+      </tr>
+
+      <tr><th class="sections" colspan="2">Output options</th></tr>
+
+      <tr>
+	<td class="cmdline">
+          --output=automaton<br>
+          --output=nba<br>
+          --output=plugin:<i>name</i>
+	</td>
+	<td>
+	  What should be output?
+	  <ul>
+	    <li><span class="cmdline">automaton</span> : output the generated deterministic automaton</li>
+	  <li><span class="cmdline">nba</span> : transform the DRA/DSA to a non-deterministic B&uuml;chi automaton (NBA) and output the NBA in LBTT-format. This basically transforms <span class="prog">ltl2dstar</span> into a LTL-to-NBA translator (LTL&nbsp;-&gt;&nbsp;NBA&nbsp;-(Safra)-&gt;&nbsp;DRA/DSA&nbsp;-&gt;&nbsp;NBA), which allows testing the implementation using the LTL-to-B&uuml;chi testbench <a href="http://www.tcs.hut.fi/Software/lbtt/"><span class="prog">lbtt</span></a> and <a href="https://spot.lrde.epita.fr/ltlcross.html">Spot's ltlcross</a>. </li>
+
+	  <li><span class="cmdline">plugin</span> : Delegate output of the DRA/DSA to the plugin called <i>name</i></li>
+	</ul>
+	  The option <span class="cmdline">--output=dot</span> is supported for legacy reasons and corresponds to
+          <span class="cmdline">--output=automaton --output-format=dot</span>.
+	  <p>
+	  <b>Default:</b> <span class="cmdline">--output=automaton</span>
+	</p>
+	</td>
+      </tr>
+
+      
+      <tr>
+	<td class="cmdline">
+          --output-format=native<br>
+          --output-format=hoa<br>
+          --output-format=dot
+	</td>
+	<td>
+	  What should be the output format?
+	  <ul>
+    	    <li><span class="cmdline">native</span> :
+	    output a <a href="#output-format-dstar">textual representation</a>
+	    of the automaton in the format introduced by <span class="prog">ltl2dstar</span>.
+	    For NBA, output in LBTT format.</li>
+      	    <li><span class="cmdline">hoa</span> : output a <a href="#output-format-hoa">HOA</a> representation of the automaton.</li>
+    	   <li><span class="cmdline">dot</span> : output a graph description that can be used as input to <span class="prog">dot</span>
+	    from the <span class="prog"><a href="http://www.graphviz.org/">graphviz</a></span> package, which generates a graphical representation of the automaton.</li>
+	</ul>
+	  
+	  <b>Default:</b> <span class="cmdline">--output-format=native</span>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">
+          --extra-output=<i>format</i>:<i>filename</i>
+	</td>
+	<td>
+	  <span class="alert">new in version 0.5.4</span>
+	  <p>Optional, request additional output (may occur multiple
+	  times).
+	  This is useful, for example, if one wants to generate
+	  both a HOA and DOT output from the same run.
+	  </p>
+
+	  <p>
+	  <i>format</i> can be one of the valid options for the
+	  <span class="cmdline">--output-format</span> (see above).
+	  Prefixing <span class="cmdline">nba-</span> will output the
+	  NBA generated from the deterministic automaton (see
+	  <span class="cmdline">--output=nba</span>).
+	  <br>
+	  <i>filename</i> is the name of the output file, or <span
+	  class="cmdline">-</span> for standard output.
+	  </p>
+
+	  <p>
+	  <b>Examples:</b></p>
+	  <ul>
+	    <li><span class="cmdline">--extra-output=hoa:da.hoa</span><br>
+	    Additionally write deterministic automaton to <span
+	    class="cmdline">da.hoa</span> in HOA format.</li>
+	    <li><span class="cmdline">--extra-output=nba-hoa:nba.hoa</span><br>
+	    Additionally write NBA generated from deterministic
+	    automaton to <span class="cmdline">nba.hoa</span> in HOA
+	    format.</li>
+	  </ul>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">--detailed-states=<i>yes/no</i></td>
+	<td>Output detailed descriptions of the internal structure of the states of the DRA/DSA. This includes Safra trees, the internal structure of the product automaton of the union construction and the equivalence class of the automaton after the bisimulation optimization, as well as which states where used in the stuttered translation.
+	  <br><br>
+	  <b>Default:</b> <span class="cmdline">--detailed-states=no</span>
+	</td>
+      </tr>
+
+      
+      <tr><th class="sections" colspan="2">Optimizations</th></tr>
+
+      <tr>
+	<td class="cmdline">--safra=<i>options</i></td>
+	<td>Enable/disable "on-the-fly" optimizations of Safra's construction.<br>
+	  <i>options</i> is a comma-seperated list of the following options (with a minus '-' to disable), interpreted left-to-right:<br>
+	  
+	  <ul>
+	    <li><span class="cmdline">all</span> : enable all optimizations</li>
+	  
+	  <li><span class="cmdline">none</span> : disable all optimizations</li>
+	  
+	  <li><span class="cmdline">accloop</span> : detect accepting self-loops</li>
+	  
+	  <li><span class="cmdline">accsucc</span> : detect "all successors in NBA are accepting"</li>
+	  
+	  <li><span class="cmdline">rename</span> : try to name new nodes in Safra trees intelligently</li>
+	  
+	  <li><span class="cmdline">reorder</span> : try to reorder nodes in Safra trees intelligently</li>
+
+	  <li><span class="cmdline">nbareject</span> : clean up NBA by removing surely rejecting states<br>
+	                                               <span class="alert">new in version 0.5.4</span></li>
+	</ul>
+
+
+	  <b>Example:</b> All optimizations but renaming:<br>
+	  <span class="cmdline">--safra=all,-rename</span>
+	  <br><br>
+	  <b>Example:</b> Only renaming and reordering:<br>
+	  <span class="cmdline">--safra=rename,reorder</span>
+
+	  <br><br>
+	  <b>Default:</b> <span class="cmdline">--safra=all</span>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">--bisimulation=<i>yes/no</i></td>
+	<td>Enable/disable calculation of the quotient automaton.
+	  <br><br>
+	  <b>Default:</b> <span class="cmdline">--bisimulation=yes</span>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">--opt-acceptance=<i>yes/no</i></td>
+	<td>Optimize acceptance condition.
+	  <br><br>
+	  <b>Default:</b> <span class="cmdline">--opt-acceptance=yes</span>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">--dba-direct=<i>yes/no</i></td>
+	<td>
+	  <span class="alert">new in version 0.5.4</span>
+	  <p>If the NBA is already deterministic, skip Safra's
+	  determinization. Stutter (if applicable) and bisimulation quotienting are
+	  applied nonetheless.
+	  </p>
+	  <b>Default:</b> <span class="cmdline">--dba-direct=yes</span>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">--union=<i>yes/no</i></td>
+	<td>Enable/disable the construction of the union DRA for formulas with the logical disjunction as top-level operator.
+	  <br><br>
+	  <b>Default:</b> <span class="cmdline">--union=yes</span>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">--scheck=<i>path</i></td>
+	<td>Enable the direct calculation of a deterministic B&uuml;chi automaton using the tool <a href="http://www.tcs.hut.fi/~timo/scheck/"><span class="prog">scheck</span></a> for the subset of safety/co-safety LTL formulas. The executable is given by <i>path</i>.
+	  <br><br>
+	  <b>Default:</b> disabled.
+	</td>
+      </tr>
+
+      <tr><th class="sections" colspan="2">Stuttering</th></tr>
+
+      <tr>
+	<td class="cmdline">--stutter=<i>yes/no</i></td>
+	<td>Enable/disable stuttering in the construction of the deterministic automaton.<br>
+	  <br>
+	  <b>Default:</b> <span class="cmdline">--stutter=yes</span>
+	</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">--partial-stutter=<i>yes/no</i></td>
+	<td>Enable/disable determining the exact set of symbols that are stutter insensitive, which allows using the stuttering construction even in the case that the formula contains the Nextstep operator. This option only has an effect if <span class="cmdline">--stutter=yes</span>.<br>
+	  <br>
+	  <b>Default:</b> <span class="cmdline">--partial-stutter=no</span>
+	</td>
+      </tr>
+
+
+      <tr><th class="sections" colspan="2">Plugins</th></tr>
+      <tr>
+	<td class="cmdline">
+          --plugin=<i>name</i><br>
+          --plugin=<i>name</i>:<i>argument</i></td>
+	<td>Activate the plugin called <i>name</i>, optionally configured with <i>argument</i>.
+	</td>
+      </tr>
+
+      <tr><th class="sections" colspan="2">Short options</th></tr>
+      <tr>
+	<td class="cmdline">-t '<i>X</i>'</td>
+	<td>Expanded to <span class="cmdline">--ltl2nba='<i>X</i>'</span>.</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">-D</td>
+	<td>Expanded to <span class="cmdline">--output-format=dot</span>.</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">-H</td>
+	<td>Expanded to <span class="cmdline">--output-format=hoa</span>.</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">-B</td>
+	<td>Expanded to <span class="cmdline">--input=nba</span> (HOA NBA input).</td>
+      </tr>
+      
+      <tr><th class="sections" colspan="2">Other</th></tr>
+
+      <tr>
+	<td class="cmdline">--help</td>
+	<td>Print command line help and quit.</td>
+      </tr>
+
+      <tr>
+	<td class="cmdline">--version</td>
+	<td>Print version string to standard out and quit.</td>
+      </tr>
+
+      
+    </table>
+    
+
+
+    <h2 id="ltl-to-nba-interface">Interfacing external LTL-to-NBA translators</h2>
+
+    <p>
+    ltl2dstar is designed to use an external tool to convert LTL formulas to a non-deterministic B&uuml;chi automaton (NBA)
+    as the first step in generating a deterministic &omega;-automaton. It thus has to be able to output LTL formulas
+    in the proper syntax and to read the produced automata.</p>
+
+    <h3 id="interface-lbtt">LBT(T) interface</h3>
+
+    <p>The LBT(T) interface is the one used by the LTL-to-B&uuml;chi testbench <a href="http://www.tcs.hut.fi/Software/lbtt/">lbtt</a>, extending <a href="http://www.tcs.hut.fi/Software/maria/tools/lbt/">lbt</a>.
+    For a description of the input format of the LTL formulas (placeholders <span class="cmdline">%L</span> and <span class="cmdline">%l</span>)
+    and the output format of the NBA (placeholder <span class="cmdline">%T</span>) see <a href="http://www.tcs.hut.fi/Software/maria/tools/lbt/">this description</a>.</p>
+
+    <p>With the <span class="cmdline">lbtt:</span> shortcut, the LTL-to-NBA translator will be called as follows:</p>
+
+    <blockquote><p><i>path-to-translator</i> <i>parameters</i> <i>input-file</i> <i>output-file</i></p></blockquote>
+    
+    <p>The <i>input-file</i> will contain a single line with the LTL to be translated. After execution, <i>output-file</i> should contain the generated NBA.</p>
+
+    <p>Currently, only non-generalized NBA (i.e. NBA with only a single acceptance condition) are supported. The extension of the output format that also allows acceptance on the transitions and not only on the states available with <span class="prog">lbtt</span> in version >1.1.0 is not supported by <span class="prog">ltl2dstar</span>.</p>
+
+
+    <h3 id="interface-spin">SPIN interface</h3>
+    
+    <p>The model checker <a href="http://www.spinroot.com/"><span class="prog">spin</span></a> converts LTL to formulas to <i>never claims</i> (placeholder <span class="cmdline">%N</span>),
+    constructs in the programming language PROMELA that <span class="prog">spin</span> uses.
+    <span class="prog">ltl2dstar</span> does not attempt to parse the full range of PROMELA language constructs that could be used in never claims,
+    but instead focuses on the simpler structure used by actual translators, such as <span class="prog">spin</span> and <span class="prog">ltl2ba</span>.
+    This subset may be insufficient in the future or for other translators</p>
+    
+    <p>A translator conforming to the SPIN interface will be called as follows:</p>
+    <blockquote><p><i>path-to-translator</i> -f "<i>ltl-formula</i>"</p></blockquote>
+    
+    <p>The LTL formula (placeholders <span class="cmdline">%L</span> and <span class="cmdline">%l</span>) is in infix form
+       using the SPIN syntax for the operators always (<span class="ltl">[]</span>) and eventually (<span class="ltl">&lt;&gt;</span>),
+       see the <a href="http://spinroot.com/spin/Man/ltl.html">documentation</a>.</p>
+
+   <p>The generated automaton is output by the translator on the standard output.</p>
+
+   <h3 id="input-hoa">HOA input</h3>
+
+   <p>
+   Since version 0.5.3, <span class="prog">ltl2dstar</span> can read non-deterministic B&uuml;chi automata in the <a href="#format-hoa">HOA format</a>.
+   Currently, only automata with a <em>single starting state</em>, <em>state-based acceptance</em>, <em>explicit transition labels</em>
+   and a non-generalized <em>B&uuml;chi</em> acceptance condition are supported.
+   The parser is implemented using the <a href="http://automata.tools/hoa/cpphoafparser">cpphoafparser library</a>.
+   </p>
+
+
+    <h2 id="limitations">Known limitations</h2>
+    <p>
+    As <span class="prog">ltl2dstar</span> produces a deterministic, complete automaton,
+    with an explicit transition for every combination of atomic propositions,
+    translating formulas or NBA with a large number of atomic propositions becomes infeasible.
+    For efficient storage of the automaton, there is therefore a hard-coded
+    limit of at most 32 atomic propositions. 
+    </p>
+
+    <h2 id="literature">Literature</h2>
+
+    <ul>
+      <li id="lit-stutter">Joachim Klein, Christel Baier:<br>
+	  "On-the-fly Stuttering in the Construction of Deterministic omega-Automata"<br>
+	  in: CIAA 2007, Lecture Notes in Computer Science volume 4783, 2007,  p51-61<br>
+          [<a href="http://dx.doi.org/10.1007/978-3-540-76336-9_7">link</a>]
+	  </li>
+      <li id="lit-tcs2006">Joachim Klein, Christel Baier:<br>
+	  "Experiments with deterministic omega-automata for formulas of linear temporal logic"<br>
+	  in: Theoretical Computer Science, 363/2, 2006, p182-195<br>
+	  [<a href="http://dx.doi.org/10.1016/j.tcs.2006.07.022">link</a>]</li>
+      <li id="diploma-thesis">Joachim Klein:<br>
+	"Linear Time Logic and Deterministic omega-Automata"<br>
+	Diploma thesis, January 2005, University of Bonn<br>
+	[<a href="http://www.ltl2dstar.de/literature/ltl2dstar-diploma-thesis.pdf">pdf</a>]. 
+      <li id="lit-safra">Shmuel Safra:<br>
+	"On the Complexity of omega-Automata"<br>
+	FOCS, 1988<br>
+	[<a href="http://dx.doi.org/10.1109/SFCS.1988.21948">link</a>]</li>
+    </ul>
+
+
+
+  </body>
+</html>

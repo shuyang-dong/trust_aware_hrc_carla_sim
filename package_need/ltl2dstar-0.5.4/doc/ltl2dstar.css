@@ -1,0 +1,151 @@
+body {font-family:sans-serif;
+	margin: auto;
+	max-width: 60em;
+	text-align: justify;
+	line-height: 1.4
+}
+
+div.nav { margin-top:1em; position: absolute; top:0em; left:0em}
+a.nav {text-decoration: none; color:grey; margin:1em}
+
+.prog {
+	font-weight: bold;
+	font-family: monospace;
+	font-size: larger;
+}
+
+.cmdline {
+	font-weight: normal;
+	font-family: monospace;
+	font-size: larger;
+	border-radius: 0.2em;
+	white-space: nowrap;
+	background-color: #f0f0f0;
+	padding: 0.2em;
+}
+
+div.cmdline {
+	padding-left: 1em;
+}
+
+span.cmdline { line-height:2}
+
+.ltl {
+    font-family:monospace; 
+    font-size:larger;
+}
+
+
+.classname {
+	font-weight: normal;
+	font-family: monospace;
+	font-size: larger;
+}
+
+.alert {
+	background-color: #ffd0d0;
+	border: 1px solid #c0d0d0;
+        padding: 0.1em;
+}
+
+h1 {
+	padding-top: 1em;
+	border-bottom: 3px solid darkblue;
+	text-align: center;
+}
+
+h2 {
+	background-color: #6FC5EB;
+	padding: 0.3em;
+	margin-left: -.5em;
+	margin-right: -.5em;
+	margin-top: 2em;
+	border: 1px solid grey;
+	border-radius: 0.2em;
+}
+
+h3 {
+	background-color: #E0F0FF;
+	padding: 0.3em;
+	margin-left: -0.5em;
+	margin-top: 2em;
+	border: 1px solid black;
+	border-radius: 0.2em;
+}
+
+.blue1 { color: #4F8BAB; }
+.blue2 { color: #4F9BC9; }
+.blue3 { color: #64B3DF; }
+
+:link, :visited { color: #4f4fe0; text-decoration: none }
+
+a.explanationref {font-size:70%; vertical-align: super}
+div.block {
+	margin-left: 2em;
+	margin-right: 2em;
+	padding: 0.5em;
+	border: 1px solid blue;
+	margin-bottom: 1em;
+}
+
+table.ltl-example {border:1px solid black; border-collapse:collapse; text-align:center;}
+
+table.ltl-example td {border:1px solid black;}
+table.ltl-example th {border:1px solid black; background-color:#d0d0d0}
+
+table.cmdline-options {border:1px solid black; border-collapse:collapse;}
+
+table.cmdline-options td {border:1px solid black; vertical-align:top; padding:0.5em; text-align: left;}
+table.cmdline-options th {border:1px solid black; background-color:#d0d0d0; vertical-align:top; text-align:left;padding-left:1em;}
+
+table.cmdline-options th.sections {border:1px solid black; background-color:#7FD5FB; vertical-align:top; text-align:left;padding-left:1em;}
+
+table.ltl-nba-progs {border:1px solid black; border-collapse:collapse; margin:1em;}
+table.ltl-nba-progs td {border:1px solid black; vertical-align:top; padding:0.25em; text-align:left}
+table.ltl-nba-progs th {border:1px solid black; background-color:#d0d0d0; padding: 0.5em;}
+
+table.ltl2nba-placeholder {border:1px solid black; border-collapse:collapse;margin:1em;}
+table.ltl2nba-placeholder td {border:1px solid black; vertical-align:top; padding:0.25em;}
+.placeholder { font-family:monospace; font-size:larger; }
+table.ltl2nba-placeholder th {border:1px solid black; background-color:#d0d0d0; padding: 0.5em;}
+
+.translator { border-radius: 0.2em; white-space: nowrap; background-color: #f0f0f0; padding: 0.2em; font-family: monospace; font-size: larger}
+
+li {
+	padding-bottom: 0.25em;
+	padding-top: 0.25em;
+}
+
+.paragraph { color: #4F8BAB; font-weight: bold; font-size: larger}
+
+pre {
+	font-size: 120%
+}
+
+pre.command {
+	background-color: #f0f0f0;
+	margin: 1em 2em;
+	padding: 0.5em 0em 0.5em 2em;
+	border-radius: 0.15em;
+}
+
+pre.commandWithOutput {
+	background-color: #f0f0f0;
+	margin: 1em 2em 0em 2em;
+	padding: 0.5em 0em 0.5em 2em;
+	border-radius: 0.15em;
+}
+
+
+pre.output {
+	background-color: #e0e0e0;
+	margin: 0em 2em 1em 3em;
+	padding: 0.5em 0em 0.5em 2em;
+	border-radius: 0.15em;
+}
+
+
+div.code {
+	margin: 0.5em; padding: 0.5em; border: 1px solid #c0c0c0;
+}
+
