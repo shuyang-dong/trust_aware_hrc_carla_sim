@@ -12,6 +12,25 @@ furnished to do so, subject to the following conditions:
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
+---  
+**Attribution Requirement**:  
+This project was originally developed by **Shuyang Dong** as part of the paper:
+
+"Trust-aware motion planning for human-robot collaboration under distribution temporal logic specifications"  
+Presented at 2024 IEEE International Conference on Robotics and Automation (ICRA)
+
+If you use this software or build upon it, please cite the original work:
+
+@inproceedings{yu2024trust,
+  title={Trust-aware motion planning for human-robot collaboration under distribution temporal logic specifications},
+  author={Yu, Pian and Dong, Shuyang and Sheng, Shili and Feng, Lu and Kwiatkowska, Marta},
+  booktitle={2024 IEEE International Conference on Robotics and Automation (ICRA)},
+  pages={12949--12955},
+  year={2024},
+  organization={IEEE}
+}
+---
+
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
